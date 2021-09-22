@@ -1,0 +1,12 @@
+.balances-container {
+  display: flex;
+  flex-direction: column;
+  .balance {
+    display: flex;
+    flex-direction: column;
+    span:last-of-type {
+      align-self: flex-end;
+      padding: 8px;
+    }
+  }
+}

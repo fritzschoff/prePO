@@ -1,0 +1,16 @@
+.header {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-bottom: 1px solid grey;
+  padding: 0 8px;
+
+  h1 {
+    margin-right: 16px;
+  }
+
+  .pink {
+    color: #ff007a;
+    text-shadow: 0 0 5px #ff007a;
+  }
+}
