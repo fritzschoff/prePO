@@ -8,7 +8,7 @@ export default function Web3Connect() {
 
   const connectToWeb3 = () => {
     if (!active) {
-      activate(new InjectedConnector({ supportedChainIds: [1] }));
+      activate(new InjectedConnector({ supportedChainIds: [1, 1337, 31337] }));
     } else {
       deactivate();
     }

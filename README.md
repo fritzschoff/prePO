@@ -1,1 +1,1 @@
-# TODO @MF write README
+# Getting Started

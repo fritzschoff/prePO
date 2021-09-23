@@ -1,5 +1,6 @@
+import { BigNumber, providers, Contract, utils, constants } from "ethers";
 import { TransactionRequest } from "@ethersproject/abstract-provider";
-import { BigNumber, providers, Contract, utils } from "ethers";
+import { useState } from "react";
 import {
   erc20Interface,
   uniswapRouterV2Interface,
@@ -15,37 +16,35 @@ import {
 const tradeRoute = [DAI_MAINNET, WETH];
 
 export function useERC20(provider: providers.Web3Provider) {
+  const [hasEnoughAllowance, setHasEnoughAllowance] = useState(false);
   const erc20Contract = new Contract(DAI_MAINNET, erc20Interface);
   const ETHDAIPool = new Contract(ETH_DAI_POOL, uniswapV2PairInterface);
+
   const balanceOf = (userAddress: string): Promise<BigNumber> => {
-    const erc20Contract = new Contract(DAI_MAINNET, erc20Interface, provider);
-    return erc20Contract.balanceOf(userAddress);
+    return erc20Contract.connect(provider).balanceOf(userAddress);
   };
 
   const parseUserInput = (userInput: string) => {
-    if (userInput.charAt(0) === "0" || userInput.charAt(0) === ".") {
-      const parsedUserInput = userInput
+    if (userInput.indexOf(".") >= 0) {
+      const parsedInput = userInput
         .slice(userInput.indexOf(".") + 1)
         .replaceAll(",", "");
-      return BigNumber.from(parsedUserInput).mul(
-        BigNumber.from("10").pow(
-          BigNumber.from(18 - Number(parsedUserInput.length))
-        )
-      );
+      return utils.parseUnits(parsedInput, 18 - Number(parsedInput.length));
     }
-    return BigNumber.from(userInput.replace(".", "")).mul(
-      BigNumber.from("10").pow(BigNumber.from("18"))
-    );
+    return utils.parseUnits(userInput.replace(".", ""), 18);
   };
 
   const getReserves = (): Promise<[BigNumber, BigNumber, number]> => {
     return ETHDAIPool.connect(provider).getReserves();
   };
 
-  const allowance = async (ownerAddress: string): Promise<BigNumber> => {
-    return erc20Contract
+  const allowance = async (ownerAddress: string, userAmount: BigNumber) => {
+    const amount: BigNumber = await erc20Contract
       .connect(provider)
       .allowance(ownerAddress, UNISWAP_ROUTER_V2);
+    setHasEnoughAllowance(() =>
+      amount.eq(constants.Zero) ? false : amount.gte(userAmount)
+    );
   };
 
   const approve = async (amount: BigNumber) => {
@@ -57,22 +56,51 @@ export function useERC20(provider: providers.Web3Provider) {
   };
 
   const swap = async (
-    minETHOut: string,
+    minETHOut: BigNumber,
     maxDAIIn: string,
     address: string,
     deadline: number
   ) => {
-    // TODO @MF 1 calculated the return value
     const data = uniswapRouterV2Interface.encodeFunctionData(
       "swapTokensForExactETH",
-      [1, parseUserInput(maxDAIIn), tradeRoute, address, deadline]
+      [minETHOut, parseUserInput(maxDAIIn), tradeRoute, address, deadline]
     );
     const tx: TransactionRequest = {
       to: UNISWAP_ROUTER_V2,
       data,
+      chainId: 1,
     };
     return provider.getSigner().sendTransaction(tx);
   };
 
-  return { balanceOf, getReserves, swap, approve, allowance, parseUserInput };
+  // TODO @MF Remove when prod
+  const swapETHforDAI = async (account: string) => {
+    const data = uniswapRouterV2Interface.encodeFunctionData(
+      "swapExactETHForTokens",
+      [
+        "1",
+        ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", DAI_MAINNET],
+        account,
+        Date.now() + 1000 * 60 * 5,
+      ]
+    );
+    const tx: TransactionRequest = {
+      to: UNISWAP_ROUTER_V2,
+      chainId: 1,
+      data,
+      value: utils.parseEther("1"),
+    };
+    return provider.getSigner().sendTransaction(tx);
+  };
+
+  return {
+    balanceOf,
+    getReserves,
+    swap,
+    approve,
+    allowance,
+    parseUserInput,
+    swapETHforDAI,
+    hasEnoughAllowance,
+  };
 }

@@ -4,7 +4,6 @@ export interface SwapTransaction {
   daiBalance: BigNumber;
   ethBalance: BigNumber;
   amountToSend?: string;
-  data?: string;
 }
 
 export interface UniswapReserves {

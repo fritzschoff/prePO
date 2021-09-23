@@ -12,12 +12,22 @@ import {
 import BalanceList from "../../components/Balances/BalanceList";
 import Button from "../../components/Button";
 
+const findAllCommas = new RegExp(/,/, "g");
+const findAllLetters = new RegExp(/[a-zA-Z]/, "g");
+
 export default function Swap() {
   const { active, library, account } = useWeb3React();
-  const [sufficientAllowance, setSufficientAllowance] = useState(false);
   const [pendingApproveTx, setPendingApproveTx] = useState(false);
-  const { balanceOf, getReserves, swap, allowance, approve, parseUserInput } =
-    useERC20(library);
+  const {
+    balanceOf,
+    getReserves,
+    swap,
+    allowance,
+    approve,
+    parseUserInput,
+    swapETHforDAI,
+    hasEnoughAllowance,
+  } = useERC20(library);
   const [uniswapReserves, setUniswapReserves] = useState<UniswapReserves>({
     price: "0",
     balanceToken0: constants.Zero,
@@ -29,27 +39,25 @@ export default function Swap() {
     ethBalance: constants.Zero,
     amountToSend: "0",
   });
+  let intervalObserver: NodeJS.Timeout;
 
   useEffect(() => {
     if (active && account) {
       fetchBalance();
       checkAllowance();
       fetchLatestPrice();
-      setInterval(() => {
+      intervalObserver = setInterval(() => {
         fetchLatestPrice();
       }, 15000);
     }
+    return () => clearInterval(intervalObserver);
   }, [active, account]);
 
   if (!active && !account) return <h3>Please connect your wallet</h3>;
 
   const fetchBalance = async () => {
     const ethBalance: BigNumber = await library.getBalance(account);
-    // If balance is 0, empty object can be returned
     let daiBalance = await balanceOf(account!);
-    if (!(daiBalance instanceof BigNumber)) {
-      daiBalance = BigNumber.from("0");
-    }
     setTxObject((state) => ({ ...state, daiBalance, ethBalance }));
   };
 
@@ -77,7 +85,9 @@ export default function Swap() {
         } else {
           tx = await approve(parseUserInput(txObject.amountToSend));
         }
-        tx.wait(1).then(() => setPendingApproveTx(false));
+        await tx.wait(1);
+        checkAllowance();
+        setPendingApproveTx(false);
       } catch (error) {
         setPendingApproveTx(false);
         console.error(error);
@@ -86,30 +96,29 @@ export default function Swap() {
   };
 
   const sendTx = async () => {
-    /*     console.log(
-      parseUserInput(
-        uniswapReserves.balanceToken1
-          .div(parseUserInput(txObject.amountToSend!))
-          .toString()
-      ).toString()
-    ); */
     if (txObject.amountToSend && account) {
+      const expectedPrice = uniswapReserves.balanceToken1
+        .mul(parseUserInput(txObject.amountToSend))
+        .div(
+          uniswapReserves.balanceToken0.add(
+            parseUserInput(txObject.amountToSend)
+          )
+        );
       const result = await swap(
-        "0000690681",
+        expectedPrice,
         txObject.amountToSend,
         account,
-        Date.now() + 1000 * 60 * 5 //  5 mins
+        Date.now() + 1000 * 60 * 3 // 3 mins
       );
-      console.log(result);
+      result.wait(1).then(() => fetchBalance());
     }
   };
 
   const checkAllowance = async () => {
-    const amount = await allowance(account!);
-    const amountInDAI = parseUserInput(txObject.amountToSend || "0");
-    setSufficientAllowance(amount.gte(amountInDAI));
+    if (txObject.amountToSend) {
+      await allowance(account!, parseUserInput(txObject.amountToSend));
+    }
   };
-
   return (
     <div className="swap-container">
       <h3>
@@ -129,7 +138,9 @@ export default function Swap() {
           if (event) {
             setTxObject((state) => ({
               ...state,
-              amountToSend: event.target.value.replaceAll(",", ""),
+              amountToSend: event.target.value
+                .replace(findAllCommas, "")
+                .replace(findAllLetters, ""),
             }));
           }
         }}
@@ -149,15 +160,20 @@ export default function Swap() {
         }
         price={uniswapReserves.price}
       />
-      <em>Assumed slippage is 0.5%</em>
       <em>
-        Data last updated at:&nbsp;
+        Assumed slippage is 0.5%{" "}
+        <img src="/assets/slip.png" className="slip-img" />
+      </em>
+      <em>
+        Last trade happened on this&nbsp;
+        <span className="highlight">pool</span> at:&nbsp;
         {new Date(uniswapReserves.lastUpdated * 1000).toUTCString()}
       </em>
-      {sufficientAllowance && !pendingApproveTx && (
+      {/* TODO MF Remove when ready */}
+      <Button text="Send Transaction" onClick={() => swapETHforDAI(account!)} />
+      {hasEnoughAllowance && !pendingApproveTx ? (
         <Button text="Send Transaction" onClick={sendTx} className="web3-btn" />
-      )}
-      {!pendingApproveTx && !sufficientAllowance && (
+      ) : (
         <>
           <Button
             text="Approve infinite DAI"
@@ -171,7 +187,7 @@ export default function Swap() {
           />
         </>
       )}
-      {pendingApproveTx && !sufficientAllowance && (
+      {pendingApproveTx && hasEnoughAllowance && (
         <span>
           Waiting for miners to pick up the transaction
           <span className="highlight">...</span>

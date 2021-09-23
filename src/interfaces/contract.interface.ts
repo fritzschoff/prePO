@@ -1,7 +1,7 @@
 import { Interface } from "@ethersproject/abi";
 
 export const erc20Interface = new Interface([
-  "function balanceOf(address owner) view",
+  "function balanceOf(address owner) view returns(uint256)",
   "function approve(address spender, uint256 amount) public returns (bool)",
   "function allowance(address owner, address spender) view returns(uint256)",
 ]);
@@ -13,4 +13,9 @@ export const uniswapV2PairInterface = new Interface([
 export const uniswapRouterV2Interface = new Interface([
   `function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
   external returns (uint[] memory amounts)`,
+  /* TODO @MF remove when done */
+  `function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
+  external
+  payable
+  returns (uint[] memory amounts)`,
 ]);
