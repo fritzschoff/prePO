@@ -11,9 +11,7 @@ import {
 } from "../../interfaces/swap.interface";
 import BalanceList from "../../components/Balances/BalanceList";
 import Button from "../../components/Button";
-
-const findAllCommas = new RegExp(/,/, "g");
-const findAllLetters = new RegExp(/[a-zA-Z]/, "g");
+import { findAllCommas, findAllLetters } from "../../utils/regex";
 
 export default function Swap() {
   const { active, library, account } = useWeb3React();
@@ -97,26 +95,32 @@ export default function Swap() {
 
   const sendTx = async () => {
     if (txObject.amountToSend && account) {
-      const expectedPrice = uniswapReserves.balanceToken1
+      const expectedReturn = uniswapReserves.balanceToken1
         .mul(parseUserInput(txObject.amountToSend))
         .div(
           uniswapReserves.balanceToken0.add(
             parseUserInput(txObject.amountToSend)
           )
         );
-      const result = await swap(
-        expectedPrice,
+      const tx = await swap(
+        expectedReturn,
         txObject.amountToSend,
         account,
         Date.now() + 1000 * 60 * 3 // 3 mins
       );
-      result.wait(1).then(() => fetchBalance());
+      tx.wait(1).then(() => {
+        checkAllowance();
+        fetchBalance();
+      });
     }
   };
 
-  const checkAllowance = async () => {
+  const checkAllowance = async (userInput?: string) => {
     if (txObject.amountToSend) {
-      await allowance(account!, parseUserInput(txObject.amountToSend));
+      await allowance(
+        account!,
+        parseUserInput(userInput ? userInput : txObject.amountToSend)
+      );
     }
   };
   return (
@@ -132,16 +136,18 @@ export default function Swap() {
       <Input
         type="text"
         value={txObject.amountToSend}
-        focused={checkAllowance}
-        onBlur={checkAllowance}
         onChange={(event) => {
           if (event) {
-            setTxObject((state) => ({
-              ...state,
-              amountToSend: event.target.value
+            setTxObject((state) => {
+              const parsedInput = event.target.value
                 .replace(findAllCommas, "")
-                .replace(findAllLetters, ""),
-            }));
+                .replace(findAllLetters, "");
+              checkAllowance(parsedInput);
+              return {
+                ...state,
+                amountToSend: parsedInput,
+              };
+            });
           }
         }}
       />

@@ -25,13 +25,16 @@ export function useERC20(provider: providers.Web3Provider) {
   };
 
   const parseUserInput = (userInput: string) => {
-    if (userInput.indexOf(".") >= 0) {
-      const parsedInput = userInput
-        .slice(userInput.indexOf(".") + 1)
-        .replaceAll(",", "");
-      return utils.parseUnits(parsedInput, 18 - Number(parsedInput.length));
+    const indexOfPeriod = userInput.indexOf(".");
+    const hasPeriod = indexOfPeriod >= 0;
+    const parsedInput = hasPeriod ? userInput.replace(".", "") : userInput;
+    if (hasPeriod) {
+      return utils.parseUnits(
+        parsedInput || "0",
+        18 - userInput.slice(indexOfPeriod + 1).length
+      );
     }
-    return utils.parseUnits(userInput.replace(".", ""), 18);
+    return utils.parseUnits(parsedInput || "0", 18);
   };
 
   const getReserves = (): Promise<[BigNumber, BigNumber, number]> => {
@@ -42,9 +45,7 @@ export function useERC20(provider: providers.Web3Provider) {
     const amount: BigNumber = await erc20Contract
       .connect(provider)
       .allowance(ownerAddress, UNISWAP_ROUTER_V2);
-    setHasEnoughAllowance(() =>
-      amount.eq(constants.Zero) ? false : amount.gte(userAmount)
-    );
+    setHasEnoughAllowance(() => amount.gte(userAmount));
   };
 
   const approve = async (amount: BigNumber) => {
@@ -63,7 +64,14 @@ export function useERC20(provider: providers.Web3Provider) {
   ) => {
     const data = uniswapRouterV2Interface.encodeFunctionData(
       "swapTokensForExactETH",
-      [minETHOut, parseUserInput(maxDAIIn), tradeRoute, address, deadline]
+      [
+        // TODO @MF Calc is wrong
+        minETHOut.sub(utils.parseEther("0.001")),
+        parseUserInput(maxDAIIn),
+        tradeRoute,
+        address,
+        deadline,
+      ]
     );
     const tx: TransactionRequest = {
       to: UNISWAP_ROUTER_V2,

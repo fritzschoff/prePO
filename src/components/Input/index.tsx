@@ -5,8 +5,8 @@ interface InputProps {
   type: HTMLInputTypeAttribute;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   value?: string;
-  onBlur: () => void;
-  focused: () => void;
+  onBlur?: () => void;
+  focused?: () => void;
 }
 
 export default function Input({
