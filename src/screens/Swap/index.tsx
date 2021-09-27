@@ -14,7 +14,7 @@ import Button from "../../components/Button";
 import { findAllCommas, findAllLetters } from "../../utils/regex";
 
 export default function Swap() {
-  const { active, library, account } = useWeb3React();
+  const { active, library, account, chainId } = useWeb3React();
   const [pendingApproveTx, setPendingApproveTx] = useState(false);
   const {
     balanceOf,
@@ -95,15 +95,8 @@ export default function Swap() {
 
   const sendTx = async () => {
     if (txObject.amountToSend && account) {
-      const expectedReturn = uniswapReserves.balanceToken1
-        .mul(parseUserInput(txObject.amountToSend))
-        .div(
-          uniswapReserves.balanceToken0.add(
-            parseUserInput(txObject.amountToSend)
-          )
-        );
       const tx = await swap(
-        expectedReturn,
+        uniswapReserves,
         txObject.amountToSend,
         account,
         Date.now() + 1000 * 60 * 3 // 3 mins
@@ -123,6 +116,7 @@ export default function Swap() {
       );
     }
   };
+
   return (
     <div className="swap-container">
       <h3>
@@ -175,8 +169,19 @@ export default function Swap() {
         <span className="highlight">pool</span> at:&nbsp;
         {new Date(uniswapReserves.lastUpdated * 1000).toUTCString()}
       </em>
-      {/* TODO MF Remove when ready */}
-      <Button text="Send Transaction" onClick={() => swapETHforDAI(account!)} />
+
+      {/* For local development only */}
+      {chainId === 1337 && (
+        <Button
+          text="Buy DAI for 1 ETH"
+          onClick={() => {
+            swapETHforDAI(account!);
+            fetchBalance();
+            fetchLatestPrice();
+          }}
+          className="web3-btn"
+        />
+      )}
       {hasEnoughAllowance && !pendingApproveTx ? (
         <Button text="Send Transaction" onClick={sendTx} className="web3-btn" />
       ) : (

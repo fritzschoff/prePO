@@ -13,7 +13,7 @@ export const uniswapV2PairInterface = new Interface([
 export const uniswapRouterV2Interface = new Interface([
   `function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
   external returns (uint[] memory amounts)`,
-  /* TODO @MF remove when done */
+  /* Only used when user is on local testnet */
   `function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
   external
   payable

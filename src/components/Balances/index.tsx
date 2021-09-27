@@ -11,7 +11,7 @@ export default function Balances({ daiBalance, ethBalance }: BalancesProps) {
     <div className="balances-container">
       <div className="balance">
         <span>Your DAI balance:&nbsp;</span>
-        {/* Could use formatEther as well but the semantic would be confusing */}
+        {/* Could use formatEther as well but the syntax would be confusing */}
         <span className="highlight">{utils.formatUnits(daiBalance, 18)}</span>
       </div>
       <div className="balance">
