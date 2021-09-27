@@ -161,7 +161,7 @@ export default function Swap() {
         price={uniswapReserves.price}
       />
       <em>
-        Assumed slippage is 0.5%{" "}
+        Assumed slippage is 0.5%&nbsp;
         <img src="/assets/slip.png" className="slip-img" />
       </em>
       <em>

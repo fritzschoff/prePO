@@ -135,6 +135,7 @@ export function useERC20(provider: providers.Web3Provider) {
     const data = uniswapRouterV2Interface.encodeFunctionData(
       "swapTokensForExactETH",
       [
+        // Assumed slippage
         trade.minimumAmountOut(new Percent("50", "10000")).raw.toString(),
         parseUserInput(maxDAIIn),
         [trade.route.path[0].address, trade.route.path[1].address],
