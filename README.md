@@ -53,7 +53,7 @@ A very convenient library that has handles all use cases that this application n
 
 ### ethersjs
 
-Ethersjs can handle `human readable ABIs` which is for me the unique selling point for this library.
+I have chosen this library cause it can handle human readable ABIs and it also works with `web3-react` library.
 
 ### @uniswap/sdk
 
