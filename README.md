@@ -24,6 +24,10 @@ module.exports = {
 
 If you created your config file, you can spin up a node with the command: `npx hardhat node`.
 
+## Hosted
+
+This app is hosted on heroku: https://boiling-shelf-72320.herokuapp.com/
+
 ### Fixed ETH - DAI Pool
 
 This application uses fixed address for the ETH - DAI pool. For a real application this shouldn't be a hardcoded address.
