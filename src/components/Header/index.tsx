@@ -5,7 +5,7 @@ export default function Header() {
   return (
     <header className="header">
       <h1>
-        Swap a tokens on <span className="pink">Uniswap V2</span>
+        Swap a tokens on&nbsp;<span className="pink">Uniswap V2</span>
       </h1>
       <Web3Connect />
     </header>

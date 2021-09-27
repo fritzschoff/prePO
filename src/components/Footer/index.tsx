@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <h4>
-        Made with &nbsp;❤️ &nbsp; from&nbsp;
+        Made with ❤️&nbsp; from&nbsp;
         <a
           href="https://github.com/fritzschoff"
           target="_blank"

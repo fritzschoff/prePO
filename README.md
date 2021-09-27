@@ -39,6 +39,12 @@ is possible but due to the time constraint, I had to skip that.
 If you are on the local testnet from hardhat you can swap your ETH to DAI in order to test this application.
 This would be removed if this was a real application. For test reasons, I didn't removed this part of the application.
 
+### &nbsp
+
+I'm using HTML entities for whitespaces in places where I need to ensure that there is a whitespace. For example in a text that contains a link,
+we need to make sure that there is a space between the last character of the text and the anchor tag. For me this more convenient then the suggested
+`{' '}` from prettier.
+
 ## Dependencies
 
 ### web3-react
