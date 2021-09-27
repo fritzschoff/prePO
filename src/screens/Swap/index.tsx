@@ -175,9 +175,12 @@ export default function Swap() {
         <Button
           text="Buy DAI for 1 ETH"
           onClick={() => {
-            swapETHforDAI(account!);
-            fetchBalance();
-            fetchLatestPrice();
+            swapETHforDAI(account!).then((response) => {
+              response.wait(1).then(() => {
+                fetchBalance();
+                fetchLatestPrice();
+              });
+            });
           }}
           className="web3-btn"
         />

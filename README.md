@@ -39,7 +39,7 @@ This would be removed if this was a real application. For test reasons, I didn't
 
 ### web3-react
 
-For me, a very convenient library that has handles all use cases that this application needs.
+A very convenient library that has handles all use cases that this application needs in context of connecting to the meta mask browser extension.
 
 ### ethersjs
 
@@ -48,3 +48,7 @@ Ethersjs can handle `human readable ABIs` which is for me the unique selling poi
 ### @uniswap/sdk
 
 This library is used to calculate everything this application needs for the swap transaction (route and expected return of ETH).
+
+## Tests
+
+There are some basic test in this repo but it could definitely be more but due to my full time job at AAVE, there was no time left.
