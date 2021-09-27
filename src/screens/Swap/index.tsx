@@ -186,7 +186,12 @@ export default function Swap() {
         />
       )}
       {hasEnoughAllowance && !pendingApproveTx ? (
-        <Button text="Send Transaction" onClick={sendTx} className="web3-btn" />
+        <Button
+          text="Send Transaction"
+          onClick={sendTx}
+          className="web3-btn"
+          disabled={txObject.amountToSend === "0" || !txObject.amountToSend}
+        />
       ) : (
         <>
           <Button

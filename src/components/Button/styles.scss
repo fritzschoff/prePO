@@ -1,5 +1,11 @@
 .button-animation {
   animation: fadeIn 200ms ease-in-out;
+
+  &:disabled {
+    transition: none !important;
+    opacity: 0.5;
+    pointer-events: none;
+  }
 }
 
 @keyframes fadeIn {
